@@ -1,0 +1,45 @@
+# Copyright 2016 Cyril Gaudin, Camptocamp SA
+# Copyright 2018 Tecnativa - Carlos Dauden
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+
+from odoo import models
+from odoo.tools import float_is_zero
+
+
+class StockPicking(models.Model):
+    _inherit = "stock.picking"
+
+    def force_transfer(self, force_qty=True):
+        """Do the picking transfer (by calling action_done)
+
+        If *force_qty* is True, force the transfer for all product_uom_qty
+        when qty_done is 0.
+
+        Otherwise, process only pack operation with qty_done.
+        If a picking has no qty_done filled, we released it from his batch
+        """
+        for pick in self:
+            if pick.state != "assigned":
+                pick.action_assign()
+                if pick.state != "assigned":
+                    continue
+
+            if force_qty:
+                for pack in pick.move_line_ids:
+                    pack.qty_done = pack.product_uom_qty
+            else:
+                if all(
+                    float_is_zero(
+                        pack.qty_done, precision_rounding=pack.product_uom_id.rounding
+                    )
+                    for pack in pick.move_line_ids
+                ):
+                    # No qties to process, release out of the batch
+                    pick.batch_id = False
+                    continue
+                else:
+                    for pack in pick.move_line_ids:
+                        if not pack.qty_done:
+                            pack.unlink()
+
+            pick._action_done()
