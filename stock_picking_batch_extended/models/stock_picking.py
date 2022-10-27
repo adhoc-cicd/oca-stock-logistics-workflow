@@ -2,44 +2,12 @@
 # Copyright 2018 Tecnativa - Carlos Dauden
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models
+from odoo import models
 from odoo.tools import float_is_zero
 
 
 class StockPicking(models.Model):
     _inherit = "stock.picking"
-
-    batch_id = fields.Many2one(
-        string="Batch",
-        domain="[('state', '=', 'draft')]",
-    )
-
-    def action_cancel(self):
-        """In addition to what the method in the parent class does,
-        cancel the batches for which all pickings are cancelled
-        """
-        result = super(StockPicking, self).action_cancel()
-        self.mapped("batch_id").verify_state()
-
-        return result
-
-    def action_assign(self):
-        """In addition to what the method in the parent class does,
-        Changed batches states to assigned if all picking are assigned.
-        """
-        result = super(StockPicking, self).action_assign()
-        self.mapped("batch_id").verify_state("assigned")
-
-        return result
-
-    def _action_done(self):
-        """In addition to what the method in the parent class does,
-        Changed batches states to done if all picking are done.
-        """
-        result = super(StockPicking, self)._action_done()
-        self.mapped("batch_id").verify_state()
-
-        return result
 
     def force_transfer(self, force_qty=True):
         """Do the picking transfer (by calling action_done)

@@ -1,11 +1,11 @@
 # Copyright 2018 Tecnativa - Carlos Dauden
 from odoo.exceptions import UserError
 from odoo.tests import Form
-from odoo.tests.common import SavepointCase, tagged
+from odoo.tests.common import TransactionCase, tagged
 
 
 @tagged("post_install", "-at_install")
-class TestBatchPicking(SavepointCase):
+class TestBatchPicking(TransactionCase):
     def _create_product(self, name, product_type="consu"):
         return self.env["product.product"].create({"name": name, "type": product_type})
 
@@ -78,7 +78,7 @@ class TestBatchPicking(SavepointCase):
         self.assertEqual("assigned", self.picking.state)
         self.assertEqual("assigned", self.picking2.state)
         self.assertEqual(4, len(self.batch.move_line_ids))
-        self.assertEqual(4, len(self.batch.move_lines))
+        self.assertEqual(4, len(self.batch.move_ids))
 
     def test_assign_with_cancel(self):
         self.picking2.action_cancel()
@@ -181,9 +181,7 @@ class TestBatchPicking(SavepointCase):
         self.assertFalse(copy.batch_id)
 
     def test_create_wizard(self):
-        wizard = self.env["stock.picking.batch.creator"].create(
-            {"name": "Unittest wizard"}
-        )
+        wizard = self.env["stock.picking.to.batch"].create({"name": "Unittest wizard"})
 
         # Pickings already in batch.
         with self.assertRaises(UserError):
@@ -211,7 +209,7 @@ class TestBatchPicking(SavepointCase):
     def test_wizard_user_id(self):
         wh_main = self.browse_ref("stock.warehouse0")
 
-        wizard_model = self.env["stock.picking.batch.creator"]
+        wizard_model = self.env["stock.picking.to.batch"]
         wizard = wizard_model.create({"name": "Unittest wizard"})
         self.assertFalse(wizard.user_id)
 
@@ -247,7 +245,7 @@ class TestBatchPicking(SavepointCase):
 
     def test_backorder(self):
         # Change move lines quantities for product 6 and 7
-        for move in self.batch.move_lines:
+        for move in self.batch.move_ids:
             if move.product_id == self.product6:
                 move.product_uom_qty = 5
             elif move.product_id == self.product7:
@@ -394,7 +392,7 @@ class TestBatchPicking(SavepointCase):
         self.assertEqual(1, len(picking_backorder.move_lines))
 
     def test_wizard_batch_grouped_by_field(self):
-        Wiz = self.env["stock.picking.batch.creator"]
+        Wiz = self.env["stock.picking.to.batch"]
         self.picking.origin = "A"
         self.picking2.origin = "B"
         pickings = self.picking + self.picking2
