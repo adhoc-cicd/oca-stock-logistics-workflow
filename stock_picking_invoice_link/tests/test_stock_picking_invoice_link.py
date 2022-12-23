@@ -219,7 +219,7 @@ class TestStockPickingInvoiceLink(TestSaleCommon):
         )
         # Create return picking
         return_form = Form(self.env["stock.return.picking"])
-        # return_form.picking_id = pick_1
+        return_form.picking_id = pick_1
         return_wiz = return_form.save()
 
         # Remove product ordered line
@@ -348,8 +348,8 @@ class TestStockPickingInvoiceLink(TestSaleCommon):
             pick_1.move_ids.filtered(lambda m: m.product_id == self.prod_del),
         )
         # Create return picking
-        return_form = Form(self.env["stock.return.picking"])
-        # return_form.picking_id = pick_1
+        return_form = Form(self.env["stock.return.picking"].with_context(active_ids=pick_1.id, active_id=pick_1.id, active_model='stock.picking'))
+        return_form.picking_id = pick_1
         return_wiz = return_form.save()
         # Remove product ordered line
         return_wiz.product_return_moves.filtered(
