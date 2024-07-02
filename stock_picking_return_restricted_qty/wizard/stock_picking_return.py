@@ -17,12 +17,15 @@ class ReturnPicking(models.TransientModel):
         return val
 
     def _create_returns(self):
+        restrict_return_qty = self.picking_id.picking_type_id.restrict_return_qty
+
         precision = self.env["decimal.precision"].precision_get(
             "Product Unit of Measure"
         )
         for return_line in self.product_return_moves:
             quantity = return_line.get_returned_restricted_quantity(return_line.move_id)
-            if (
+
+            if restrict_return_qty and (
                 float_compare(
                     return_line.quantity, quantity, precision_digits=precision
                 )
@@ -39,8 +42,13 @@ class ReturnPickingLine(models.TransientModel):
 
     @api.onchange("quantity")
     def _onchange_quantity(self):
+        restrict_return_qty = (
+            self.move_id.picking_id.picking_type_id.restrict_return_qty
+        )
+
         qty = self.get_returned_restricted_quantity(self.move_id)
-        if self.quantity > qty:
+
+        if restrict_return_qty and self.quantity > qty:
             raise UserError(_("Return more quantities than delivered is not allowed."))
 
     def get_returned_restricted_quantity(self, stock_move):
@@ -55,7 +63,7 @@ class ReturnPickingLine(models.TransientModel):
             ):
                 continue
             if line.state in {"partially_available", "assigned"}:
-                qty -= line.product_qty
+                qty -= line.reserved_qty
             elif line.state == "done":
                 qty -= line.qty_done
         return max(qty, 0.0)
