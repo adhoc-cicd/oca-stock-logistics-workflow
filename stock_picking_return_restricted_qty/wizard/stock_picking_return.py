@@ -55,7 +55,7 @@ class ReturnPickingLine(models.TransientModel):
             ):
                 continue
             if line.state in {"partially_available", "assigned"}:
-                qty -= line.product_qty
+                qty -= line.reserved_qty
             elif line.state == "done":
                 qty -= line.qty_done
         return max(qty, 0.0)
