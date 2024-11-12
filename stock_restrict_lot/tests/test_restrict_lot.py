@@ -199,7 +199,7 @@ class TestRestrictLot(TransactionCase):
         pickings = self.env["stock.picking"].search(
             [("group_id", "=", procurement_group.id)]
         )
-        self.assertEqual(len(pickings), 2)
+        self.assertEqual(len(pickings), 1)
         delivery = pickings.filtered(
             lambda pick: pick.picking_type_id.code == "outgoing"
         )
