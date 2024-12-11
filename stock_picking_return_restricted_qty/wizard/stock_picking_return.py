@@ -16,7 +16,7 @@ class ReturnPicking(models.TransientModel):
         val["quantity"] = return_lines.get_returned_restricted_quantity(stock_move)
         return val
 
-    def _create_returns(self):
+    def _create_return(self):
         restrict_return_qty = self.picking_id.picking_type_id.restrict_return_qty
 
         precision = self.env["decimal.precision"].precision_get(
@@ -34,7 +34,7 @@ class ReturnPicking(models.TransientModel):
                 raise UserError(
                     _("Return more quantities than delivered is not allowed.")
                 )
-        return super()._create_returns()
+        return super()._create_return()
 
 
 class ReturnPickingLine(models.TransientModel):
