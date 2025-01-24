@@ -57,7 +57,6 @@ class TestPropagatePlannedConsumedDate(SavepointCase):
         inventory.action_validate()
 
     def test_procurement_with_2_steps_output(self):
-
         self._update_product_stock(10, location=self.location_1)
         self._update_product_stock(10, location=self.location_2)
         self._update_product_stock(5, location=self.location_1)
